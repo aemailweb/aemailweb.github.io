@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ÁEmail: Sistema de Verificación</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+body { margin: 0; padding: 0; background: linear-gradient(135deg, #0ea5e9, #14b8a6); height: 100vh; overflow: hidden; }
+
+/* PÁGINA 1: BIENVENIDA */
+#welcomePage { background-color: #f4f6f9; position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 20px; }
+.welcome-box { background-color: #ffffff; padding: 40px; border-radius: 12px; text-align: center; max-width: 450px; width: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+.code-box { background-color: #f0fdf4; border: 2px dashed #22c55e; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 20px; font-weight: bold; color: #166534; letter-spacing: 2px; margin: 20px 0; }
+.btn-go { display: block; background-color: #0ea5e9; color: #ffffff; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; border: none; width: 100%; text-align: center; text-decoration: none; }
+
+/* PÁGINA 2: INTERFAZ CORREO */
+.topbar { display: flex; justify-content: space-between; padding: 12px; background: rgba(255, 255, 255, 0.85); height: 60px; align-items: center; }
+.logo { font-weight: bold; font-size: 22px; color: #333; }
+.right { display: flex; align-items: center; gap: 12px; }
+.user { display: flex; align-items: center; gap: 8px; cursor: pointer; color: #333; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; }
+.apps { display: grid; grid-template-columns: repeat(3, 6px); gap: 3px; cursor: pointer; padding: 6px; }
+.apps div { width: 6px; height: 6px; background: #333; border-radius: 50%; }
+.panel { position: absolute; top: 55px; right: 60px; background: #fff; padding: 10px; border-radius: 10px; display: none; z-index: 3000; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+.panel.active { display: block; }
+.mail-container { display: flex; height: calc(100vh - 60px); }
+.sidebar { width: 220px; background: rgba(255, 255, 255, 0.4); padding: 10px; }
+.folder { padding: 10px; margin: 6px 0; border-radius: 8px; cursor: pointer; color: #1e293b; font-weight: 500; }
+.folder:hover { background: #e0f2fe; }
+.content { flex: 1; padding: 10px; overflow-y: auto; background: #fff; margin: 15px; border-radius: 12px; }
+.mail { background: #f8fafc; padding: 15px; margin-bottom: 8px; border-radius: 10px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); color: #333; border: 1px solid #e2e8f0; }
+
+/* MODALES */
+.mail-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
+.box { background: #fff; padding: 25px; width: 350px; border-radius: 10px; color: #333; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+input, textarea { width: 100%; margin: 8px 0; padding: 10px; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 6px; }
+button { padding: 10px; border: none; background: #0ea5e9; color: #fff; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; }
+#activationModal { background: rgba(15, 23, 42, 0.95); }
+.error-msg { color: #ef4444; font-size: 13px; margin-top: 5px; display: none; }
+.contact { padding: 6px; margin-top: 5px; background: #f1f1f1; border-radius: 6px; }
+</style>
+</head>
+<body>
+
+  <!-- PANTALLA 1: WEB CON EL CÓDIGO Y BOTÓN -->
+  <div id="welcomePage">
+    <div class="welcome-box">
+      <div style="font-size: 50px; margin-bottom: 15px;">✉️</div>
+      <h1 style="color: #1f2937; font-size: 24px; margin-bottom: 12px;">¡Ya casi está listo!</h1>
+      <p style="color: #4b5563; font-size: 15px; line-height: 1.5;">Gracias por registrarte. Copia el siguiente código de seguridad para activar tu cuenta:</p>
+      <div class="code-box">638F6t3uV</div>
+      <button class="btn-go" onclick="goToEmailApp()">Ir al Correo y Activar</button>
+    </div>
+  </div>
+
+  <!-- PANTALLA 2: BANDEJA DE CORREO SIMULADA -->
+  <div class="topbar">
+    <div class="logo">ÁEmail</div>
+    <div class="right">
+      <div class="apps" onclick="toggleApps()">
+        <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+      </div>
+      <div class="user" onclick="switchUser()">
+        <div id="avatar" class="avatar" style="background:#0ea5e9">Á</div>
+        <div id="name">Ángel</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="apps">
+    <div>📺 ÁrfTube</div><div>👥 ÁrfContacts</div><div>📁 ÁCloud</div>
+  </div>
+
+  <div class="mail-container">
+    <div class="sidebar">
+      <div class="folder" onclick="setFolder('inbox')">📥 Recibidos</div>
+      <div class="folder" onclick="setFolder('sent')">📤 Enviados</div>
+      <div class="folder" onclick="openCompose()">✏ Redactar</div>
+      <div class="folder" onclick="openContacts()">👥 Contactos</div>
+    </div>
+    <div class="content" id="box"></div>
+  </div>
+
+  <!-- MODAL DE BLOQUEO DE ACTIVACIÓN -->
+  <div class="mail-modal" id="activationModal">
+    <div class="box" style="text-align: center;">
+      <span style="font-size: 40px;">⚠️</span>
+      <h3 style="margin: 10px 0;">Activación de Cuenta</h3>
+      <p style="font-size: 14px; color: #64748b; margin-bottom: 15px;">Introduce el código secreto para desbloquear la bandeja de entrada.</p>
+      <input id="activationCode" type="text" placeholder="Ingresa el código" style="text-align: center; font-weight: bold; letter-spacing: 2px;">
+      <div id="activationError" class="error-msg">Código incorrecto. Inténtalo de nuevo.</div>
+      <button onclick="verifyCode()" style="background: #14b8a6; margin-top: 10px;">Verificar Acceso</button>
+    </div>
+  </div>
+
+  <!-- MODAL VER CORREO -->
+  <div class="mail-modal" id="mailModal" onclick="closeM(event)">
+    <div class="box" id="mailBox"></div>
+  </div>
+
+  <!-- MODAL REDACTAR -->
+  <div class="mail-modal" id="composeModal" onclick="closeM(event)">
+    <div class="box">
+      <h3>Nuevo correo</h3>
+      <input id="to" placeholder="Para">
+      <input id="sub" placeholder="Asunto">
+      <textarea id="msg" rows="4"></textarea>
+      <button onclick="send()">Enviar</button>
+    </div>
+  </div>
+
+  <!-- MODAL CONTACTOS -->
+  <div class="mail-modal" id="contactModal" onclick="closeM(event)">
+    <div class="box">
+      <h3>Contactos</h3>
+      <input id="cn" placeholder="Nombre">
+      <input id="ce" placeholder="Correo">
+      <button onclick="addC()">Añadir</button>
+      <div id="list"></div>
+    </div>
+  </div>
+
+<script>
+// Clave configurada a petición del usuario
+const CORRECT_CODE = "638F6T3UV";
+
+const users={
+ angel:{name:"Ángel",color:"#0ea5e9",avatar:"Á",inbox:[{t:"Bienvenido al sistema",f:"Sistema"}],sent:[]},
+ bob:{name:"ÁTech User",color:"#14b8a4",avatar:"ÁT",inbox:[{t:"Hola, Ángel",f:"ÁTechUser"}],sent:[]}
+};
+let u="angel"; let f="inbox"; let contacts=[]; let isActivated = false;
+
+function goToEmailApp() {
+  document.getElementById("welcomePage").style.display = "none";
+  document.getElementById("activationModal").style.display = "flex";
+}
+function verifyCode() {
+  let inputCode = document.getElementById("activationCode").value.trim().toUpperCase();
+  if(inputCode === CORRECT_CODE) {
+    isActivated = true;
+    document.getElementById("activationModal").style.display = "none";
+    render();
+  } else {
+    document.getElementById("activationError").style.display = "block";
+  }
+}
+function render(){
+ if(!isActivated) return;
+ let b=document.getElementById("box"); b.innerHTML="";
+ users[u][f].forEach((m,i)=>{
+  b.innerHTML+=`<div class='mail' onclick='openMail(${i})'><b>${m.t}</b><div>${m.f}</div></div>`;
+ });
+}
+function setFolder(x){f=x;render();}
+function switchUser() {
+  isActivated = false;
+  document.getElementById("activationCode").value = "";
+  document.getElementById("activationError").style.display = "none";
+  document.getElementById("activationModal").style.display = "flex";
+  u = u === "angel" ? "bob" : "angel";
+  document.getElementById("avatar").style.background = users[u].color;
+  document.getElementById("avatar").textContent = users[u].avatar;
+  document.getElementById("name").textContent = users[u].name;
+}
+function toggleApps(){ document.getElementById("apps").classList.toggle("active"); }
+document.addEventListener("click",e=>{ if(!e.target.closest(".apps")) document.getElementById("apps").classList.remove("active"); });
+function openCompose(){ document.getElementById("composeModal").style.display="flex"; }
+function send(){
+  let t = document.getElementById("to").value;
+  let s = document.getElementById("sub").value;
+  users[u].sent.push({t:s,f:t});
+  document.getElementById("composeModal").style.display="none";
+  render();
+}
+function openContacts(){ document.getElementById("contactModal").style.display="flex"; drawC(); }
+function addC(){
+  let cnVal = document.getElementById("cn").value;
+  let ceVal = document.getElementById("ce").value;
+  contacts.push({n:cnVal,e:ceVal}); drawC();
+}
+function drawC(){
+  let l=document.getElementById("list"); l.innerHTML="";
+  contacts.forEach(c=>{ l.innerHTML+=`<div class='contact'>${c.n} - ${c.e}</div>`; });
+}
+function openMail(i){
+  let m=users[u][f][i];
+  document.getElementById("mailBox").innerHTML=`<h3>${m.t}</h3><p style='margin:10px 0;'>De: ${m.f}</p><button onclick="document.getElementById('mailModal').style.display='none'">Cerrar</button>`;
+  document.getElementById("mailModal").style.display="flex";
+}
+function closeM(e){ if(e.target.classList.contains("mail-modal")) e.target.style.display="none"; }
+</script>
+</body>
+</html>
